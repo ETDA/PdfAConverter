@@ -1,0 +1,14 @@
+# Compiled class file
+*.class
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
