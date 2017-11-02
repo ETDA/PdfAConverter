@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.jempbox.xmp.XMPMetadata;
 import org.apache.jempbox.xmp.XMPSchemaBasic;
 import org.apache.jempbox.xmp.XMPSchemaPDF;
@@ -34,6 +34,8 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
  * 
  */
 public class ConvertPDFtoA3 {
+	
+	private static float pdfVer = 1.7f;
 
 	public static void main(String[] args) {
 		String inputFilePath = "src/main/resources/sample.pdf";
@@ -52,7 +54,7 @@ public class ConvertPDFtoA3 {
 			PDDocument doc = PDDocument.load(inputFile);
 
 			PDDocumentCatalog cat = makeA3compliant(doc);
-			attachSampleFile(doc, embedFile, embbedFilePath);
+			attachFile(doc, embedFile, embbedFilePath);
 			InputStream colorProfile = new FileInputStream(colorFile);
 			addOutputIntent(doc, cat, colorProfile);
 
@@ -92,8 +94,9 @@ public class ConvertPDFtoA3 {
 		InputStream colorProfile = new FileInputStream(colorPFile);
 
 		PDDocumentCatalog cat = makeA3compliant(doc);
-		attachSampleFile(doc, embedFile, embedFileName);
+		attachFile(doc, embedFile, embedFileName);
 		addOutputIntent(doc, cat, colorProfile);
+		doc.setVersion(pdfVer);
 
 		doc.save(outputFile);
 		doc.close();
@@ -112,18 +115,21 @@ public class ConvertPDFtoA3 {
 
 	}
 
-	private static void attachSampleFile(PDDocument doc, File embedFile, String embedFileName) throws IOException {
+	private static void attachFile(PDDocument doc, File embedFile, String embedFileName) throws IOException {
 		PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
 
 		// first create the file specification, which holds the embedded file
 
 		PDComplexFileSpecification fs = new PDComplexFileSpecification();
-		fs.setFile(embedFileName);
+		String subType = FilenameUtils.getExtension(embedFileName);
+		String fileName = FilenameUtils.getName(embedFileName);
+		
+		fs.setFile(fileName);
 		COSDictionary dict = fs.getCOSObject();
 		// Relation "Source" for linking with eg. catalog
 		dict.setName("AFRelationship", "Source");
 
-		dict.setString("UF", embedFileName);
+		dict.setString("UF", fileName);
 
 		InputStream is = new FileInputStream(embedFile);
 
@@ -135,6 +141,7 @@ public class ConvertPDFtoA3 {
 		ef.setSize((int) embedFile.length());
 		ef.setCreationDate(new GregorianCalendar());
 		fs.setEmbeddedFile(ef);
+		ef.setSubtype(subType);
 
 		// now add the entry to the embedded file tree and set in the document.
 		efTree.setNames(Collections.singletonMap(embedFileName, fs));
@@ -180,7 +187,8 @@ public class ConvertPDFtoA3 {
 
 		// Set OID
 		// pdi.setCustomMetadataValue("OID", "10.2.3.65.5");
-		// doc.setDocumentInformation(pdi);
+		
+		doc.setDocumentInformation(pdi);
 
 		XMPSchemaPDF pdf = xmp.addPDFSchema();
 		pdf.setProducer(pdd.getProducer());
