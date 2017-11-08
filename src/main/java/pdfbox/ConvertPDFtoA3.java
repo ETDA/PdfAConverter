@@ -42,6 +42,8 @@ public class ConvertPDFtoA3 {
 		String embbedFilePath = "src/main/resources/data.xml";
 		String colorProfilePath = "src/main/resources/sRGB Color Space Profile.icm";
 		String outputFilePath = "target/success.pdf";
+		String documentType = "Tax Invoice";
+
 		try {
 			File inputFile = new File(inputFilePath);
 			File embedFile = new File(embbedFilePath);
@@ -53,17 +55,19 @@ public class ConvertPDFtoA3 {
 			}
 			PDDocument doc = PDDocument.load(inputFile);
 
-			PDDocumentCatalog cat = makeA3compliant(doc);
+			PDDocumentCatalog cat = makeA3compliant(doc,documentType);
 			attachFile(doc, embedFile, embbedFilePath);
 			InputStream colorProfile = new FileInputStream(colorFile);
 			addOutputIntent(doc, cat, colorProfile);
+			doc.setVersion(pdfVer);
 
 			doc.save(outputFilePath);
 			doc.close();
 			if (outputFile.exists()) {
+				System.out.println(outputFilePath);
 				Desktop.getDesktop().open(outputFile);
 			}else{
-				System.out.println("File does not exist.");
+				System.out.println("Failed to convert.");
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -85,21 +89,27 @@ public class ConvertPDFtoA3 {
 	 *            Profile.icm
 	 * @throws Exception
 	 */
-	public static void Convert(String inputFileName, String embedFileName, String outputFile, String colorProfileName)
+	public static void Convert(String inputFilePath, String embedFilePath, String outputFilePath, String colorProfileName,String documentType)
 			throws Exception {
-		File inputFile = new File(inputFileName);
-		File embedFile = new File(embedFileName);
+		File inputFile = new File(inputFilePath);
+		File embedFile = new File(embedFilePath);
 		PDDocument doc = PDDocument.load(inputFile);
 		File colorPFile = new File(colorProfileName);
 		InputStream colorProfile = new FileInputStream(colorPFile);
 
-		PDDocumentCatalog cat = makeA3compliant(doc);
-		attachFile(doc, embedFile, embedFileName);
+		PDDocumentCatalog cat = makeA3compliant(doc,documentType);
+		attachFile(doc, embedFile, embedFilePath);
 		addOutputIntent(doc, cat, colorProfile);
 		doc.setVersion(pdfVer);
 
-		doc.save(outputFile);
+		doc.save(outputFilePath);
 		doc.close();
+		File outputFile = new File(outputFilePath);
+	    if (outputFile.exists()) {
+	      System.out.println(outputFilePath);
+	    } else {
+	      System.out.println("Failed to convert.");
+	    }
 	}
 
 	private static void addOutputIntent(PDDocument doc, PDDocumentCatalog cat, InputStream colorProfile)
@@ -122,7 +132,8 @@ public class ConvertPDFtoA3 {
 
 		PDComplexFileSpecification fs = new PDComplexFileSpecification();
 		String subType = FilenameUtils.getExtension(embedFileName);
-		String fileName = FilenameUtils.getName(embedFileName);
+		//String fileName = FilenameUtils.getName(embedFileName);
+		String fileName = "ETDA-invoice.xml";
 		
 		fs.setFile(fileName);
 		COSDictionary dict = fs.getCOSObject();
@@ -161,7 +172,7 @@ public class ConvertPDFtoA3 {
 		dict2.setItem("AF", array);
 	}
 
-	private static PDDocumentCatalog makeA3compliant(PDDocument doc) throws Exception {
+	private static PDDocumentCatalog makeA3compliant(PDDocument doc,String documentType) throws Exception {
 		PDDocumentCatalog cat = doc.getDocumentCatalog();
 		PDDocumentInformation pdd = doc.getDocumentInformation();
 		PDMetadata metadata = new PDMetadata(doc);
@@ -192,7 +203,7 @@ public class ConvertPDFtoA3 {
 
 		XMPSchemaPDF pdf = xmp.addPDFSchema();
 		pdf.setProducer(pdd.getProducer());
-
+		pdf.setPDFVersion(String.valueOf(pdfVer));
 		pdf.setAbout("");
 
 		// Mandatory: PDF-A3 is tagged PDF which has to be expressed using a
@@ -211,6 +222,9 @@ public class ConvertPDFtoA3 {
 						 * compliance, i.e. visually, unicode and structurally
 						 * preservable
 						 */
+		pdfaid.setTextProperty("DocumentFileName", "ETDA-invoice.xml");
+		pdfaid.setTextProperty("DocumentType", documentType);
+		pdfaid.setTextProperty("Version", "2.0");
 		pdfaid.setAbout("");
 		byte[] temp = xmp.asByteArray();
 
