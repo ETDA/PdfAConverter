@@ -195,9 +195,6 @@ public class ConvertPDFtoA3 {
 						 * compliance, i.e. visually, unicode and structurally
 						 * preservable
 						 */
-		pdfaid.setTextProperty("DocumentFileName", "ETDA-invoice.xml");
-		pdfaid.setTextProperty("DocumentType", documentType);
-		pdfaid.setTextProperty("Version", "2.0");
 		pdfaid.setAbout("");
 		byte[] temp = xmp.asByteArray();
 
