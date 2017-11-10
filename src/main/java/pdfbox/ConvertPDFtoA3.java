@@ -1,6 +1,5 @@
 package pdfbox;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.util.GregorianCalendar;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jempbox.xmp.XMPMetadata;
+import org.apache.jempbox.xmp.XMPSchema;
 import org.apache.jempbox.xmp.XMPSchemaBasic;
 import org.apache.jempbox.xmp.XMPSchemaPDF;
 import org.apache.jempbox.xmp.pdfa.XMPSchemaPDFAId;
@@ -25,6 +25,9 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecifica
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * The ConvertPDFtoPDFA3 method is used to convert any kind of PDF(.pdf) to
@@ -34,72 +37,35 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
  * 
  */
 public class ConvertPDFtoA3 {
-	
+
 	private static float pdfVer = 1.7f;
 
-	public static void main(String[] args) {
-		String inputFilePath = "src/main/resources/sample.pdf";
-		String embbedFilePath = "src/main/resources/data.xml";
-		String colorProfilePath = "src/main/resources/sRGB Color Space Profile.icm";
-		String outputFilePath = "target/success.pdf";
-		try {
-			File inputFile = new File(inputFilePath);
-			File embedFile = new File(embbedFilePath);
-			File outputFile = new File(outputFilePath);
-			File colorFile = new File(colorProfilePath);
-			
-			if(outputFile.exists()){
-				outputFile.delete();
-			}
-			PDDocument doc = PDDocument.load(inputFile);
-
-			PDDocumentCatalog cat = makeA3compliant(doc);
-			attachFile(doc, embedFile, embbedFilePath);
-			InputStream colorProfile = new FileInputStream(colorFile);
-			addOutputIntent(doc, cat, colorProfile);
-
-			doc.save(outputFilePath);
-			doc.close();
-			if (outputFile.exists()) {
-				Desktop.getDesktop().open(outputFile);
-			}else{
-				System.out.println("File does not exist.");
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
 	/**
-	 * The convertPDFtoPDFA3(String, String, String, String) method is used to
-	 * convert any kind of PDF(.pdf) to PDF/A-3
+	 * The convertPDFtoPDFA3(FilePaths, String, String, String) method is used
+	 * to convert any kind of PDF(.pdf) to PDF/A-3
 	 * 
-	 * @param inputFileName
-	 *            : path of input PDF file, e.g. Test.pdf, invoice.pdf
-	 * @param embedFileName
-	 *            : path of attached file, e.g. example.xml
-	 * @param outputFile
-	 *            : name of output PDF/A-3 file, e.g. invoiceA3.pdf
-	 * @param colorProfileName
-	 *            : path of color profile file, e.g. sRGB Color Space
-	 *            Profile.icm
+	 * @param pdfa3Components
 	 * @throws Exception
 	 */
-	public static void Convert(String inputFileName, String embedFileName, String outputFile, String colorProfileName)
-			throws Exception {
-		File inputFile = new File(inputFileName);
-		File embedFile = new File(embedFileName);
+	public static void Convert(PDFA3Components pdfa3Components) throws Exception {
+		File inputFile = new File(pdfa3Components.getInputFilePath());
 		PDDocument doc = PDDocument.load(inputFile);
-		File colorPFile = new File(colorProfileName);
+		File colorPFile = new File(pdfa3Components.getColorProfilePath());
 		InputStream colorProfile = new FileInputStream(colorPFile);
 
-		PDDocumentCatalog cat = makeA3compliant(doc);
-		attachFile(doc, embedFile, embedFileName);
+		PDDocumentCatalog cat = makeA3compliant(doc, pdfa3Components);
+		attachFile(doc, pdfa3Components.getEmbedFilePath());
 		addOutputIntent(doc, cat, colorProfile);
 		doc.setVersion(pdfVer);
 
-		doc.save(outputFile);
+		doc.save(pdfa3Components.getOutputFilePath());
 		doc.close();
+		File outputFile = new File(pdfa3Components.getOutputFilePath());
+		if (outputFile.exists()) {
+			System.out.println(pdfa3Components.getOutputFilePath());
+		} else {
+			System.out.println("Failed to convert.");
+		}
 	}
 
 	private static void addOutputIntent(PDDocument doc, PDDocumentCatalog cat, InputStream colorProfile)
@@ -115,21 +81,21 @@ public class ConvertPDFtoA3 {
 
 	}
 
-	private static void attachFile(PDDocument doc, File embedFile, String embedFileName) throws IOException {
+	private static void attachFile(PDDocument doc, String embedFilePath) throws IOException {
 		PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
 
+		File embedFile = new File(embedFilePath);
+		String subType = FilenameUtils.getExtension(embedFilePath);
+		String embedFileName = FilenameUtils.getName(embedFilePath);
 		// first create the file specification, which holds the embedded file
 
 		PDComplexFileSpecification fs = new PDComplexFileSpecification();
-		String subType = FilenameUtils.getExtension(embedFileName);
-		String fileName = FilenameUtils.getName(embedFileName);
-		
-		fs.setFile(fileName);
+		fs.setFile(embedFileName);
 		COSDictionary dict = fs.getCOSObject();
 		// Relation "Source" for linking with eg. catalog
 		dict.setName("AFRelationship", "Source");
 
-		dict.setString("UF", fileName);
+		dict.setString("UF", embedFileName);
 
 		InputStream is = new FileInputStream(embedFile);
 
@@ -147,8 +113,6 @@ public class ConvertPDFtoA3 {
 		efTree.setNames(Collections.singletonMap(embedFileName, fs));
 
 		// attachments are stored as part of the "names" dictionary in the
-		// document
-		// catalog
 		PDDocumentCatalog catalog = doc.getDocumentCatalog();
 
 		PDDocumentNameDictionary names = new PDDocumentNameDictionary(doc.getDocumentCatalog());
@@ -161,13 +125,14 @@ public class ConvertPDFtoA3 {
 		dict2.setItem("AF", array);
 	}
 
-	private static PDDocumentCatalog makeA3compliant(PDDocument doc) throws Exception {
+	private static PDDocumentCatalog makeA3compliant(PDDocument doc, PDFA3Components pdfa3Components) throws Exception {
 		PDDocumentCatalog cat = doc.getDocumentCatalog();
 		PDDocumentInformation pdd = doc.getDocumentInformation();
 		PDMetadata metadata = new PDMetadata(doc);
 		cat.setMetadata(metadata);
 		// jempbox version
 		XMPMetadata xmp = new XMPMetadata();
+		
 		XMPSchemaPDFAId pdfaid = new XMPSchemaPDFAId(xmp);
 		xmp.addSchema(pdfaid);
 
@@ -187,13 +152,31 @@ public class ConvertPDFtoA3 {
 
 		// Set OID
 		// pdi.setCustomMetadataValue("OID", "10.2.3.65.5");
-		
 		doc.setDocumentInformation(pdi);
+		
+		XMPSchema xsm = new XMPSchema(xmp, "rsm", "urn:etda:uncefact:data:standard:Invoice_CrossIndustryInvoice:2#");
 
+		Element e = xsm.getElement();
+		Element docFileNode = e.getOwnerDocument()
+                .createElement("rsm:DocumentFileName");
+		docFileNode.setTextContent(pdfa3Components.getDocumentFileName());
+		e.appendChild(docFileNode);
+		Element docTypeNode = e.getOwnerDocument()
+                .createElement("rsm:DocumentType");
+		docTypeNode.setTextContent(pdfa3Components.getDocumentType());
+		e.appendChild(docTypeNode);
+		Element docVerNode = e.getOwnerDocument()
+                .createElement("rsm:Version");
+		docVerNode.setTextContent(pdfa3Components.getDocumentVersion());
+		e.appendChild(docVerNode);
+		
+		xmp.addSchema(xsm);
+		
 		XMPSchemaPDF pdf = xmp.addPDFSchema();
 		pdf.setProducer(pdd.getProducer());
-
+		pdf.setPDFVersion("1.7");
 		pdf.setAbout("");
+		
 
 		// Mandatory: PDF-A3 is tagged PDF which has to be expressed using a
 		// MarkInfo dictionary (PDF A/3 Standard sec. 6.7.2.2)
