@@ -12,5 +12,4 @@
 # Maven
 log/
 target/
-
-/.vscode
+.vscode/
