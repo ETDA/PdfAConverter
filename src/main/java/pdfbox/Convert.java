@@ -31,5 +31,4 @@ public class Convert {
 
 		ConvertPDFtoA3.Convert(pdfa3Components);
 	}
-
 }
