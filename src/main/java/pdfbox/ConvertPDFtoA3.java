@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jempbox.xmp.XMPMetadata;
@@ -129,18 +133,6 @@ public class ConvertPDFtoA3 {
 		PDDocumentInformation pdd = doc.getDocumentInformation();
 		PDMetadata metadata = new PDMetadata(doc);
 		cat.setMetadata(metadata);
-		// jempbox version
-		XMPMetadata xmp = new XMPMetadata();
-		
-		XMPSchemaPDFAId pdfaid = new XMPSchemaPDFAId(xmp);
-		xmp.addSchema(pdfaid);
-
-		XMPSchemaBasic xsb = xmp.addBasicSchema();
-		xsb.setAbout("");
-
-		// Set Application Name
-		xsb.setCreatorTool("pdfbox");
-		xsb.setCreateDate(GregorianCalendar.getInstance());
 
 		PDDocumentInformation pdi = new PDDocumentInformation();
 		pdi.setProducer(pdd.getProducer());
@@ -152,51 +144,19 @@ public class ConvertPDFtoA3 {
 		// Set OID
 		// pdi.setCustomMetadataValue("OID", "10.2.3.65.5");
 		doc.setDocumentInformation(pdi);
-		
-		XMPSchema xsm = new XMPSchema(xmp, "rsm", "urn:etda:uncefact:data:standard:Invoice_CrossIndustryInvoice:2#");
 
-		Element e = xsm.getElement();
-		Element docFileNode = e.getOwnerDocument()
-                .createElement("rsm:DocumentFileName");
-		docFileNode.setTextContent(pdfa3Components.getDocumentFileName());
-		e.appendChild(docFileNode);
-		Element docTypeNode = e.getOwnerDocument()
-                .createElement("rsm:DocumentType");
-		docTypeNode.setTextContent(pdfa3Components.getDocumentType());
-		e.appendChild(docTypeNode);
-		Element docVerNode = e.getOwnerDocument()
-                .createElement("rsm:Version");
-		docVerNode.setTextContent(pdfa3Components.getDocumentVersion());
-		e.appendChild(docVerNode);
-		
-		xmp.addSchema(xsm);
-		
-		XMPSchemaPDF pdf = xmp.addPDFSchema();
-		pdf.setProducer(pdd.getProducer());
-		pdf.setPDFVersion(String.valueOf(pdfVer));
-		pdf.setAbout("");
-		
+		// use for eTax invoice only
+		Charset charset = StandardCharsets.UTF_8;
 
-		// Mandatory: PDF-A3 is tagged PDF which has to be expressed using a
-		// MarkInfo dictionary (PDF A/3 Standard sec. 6.7.2.2)
-		PDMarkInfo markinfo = new PDMarkInfo();
-		markinfo.setMarked(true);
-		doc.getDocumentCatalog().setMarkInfo(markinfo);
+		byte[] fileBytes = Files.readAllBytes(new File(pdfa3Components.getXmpTemplatePath()).toPath());
+		String content = new String(fileBytes, charset);
+		content = content.replaceAll("@DocumentFileName", pdfa3Components.getDocumentFileName());
+		content = content.replaceAll("@DocumentType", pdfa3Components.getDocumentType());
+		content = content.replaceAll("@DocumentVersion", pdfa3Components.getDocumentVersion());
+		
+		byte[] editedBytes = content.getBytes(charset);
 
-		pdfaid.setPart(3);
-		pdfaid.setConformance(
-				"U");/*
-						 * All files are PDF/A-3, setConformance refers to the
-						 * level conformance, e.g. PDF/A-3-B where B means only
-						 * visually preservable, U means visually and unicode
-						 * preservable and A -like in this case- means full
-						 * compliance, i.e. visually, unicode and structurally
-						 * preservable
-						 */
-		pdfaid.setAbout("");
-		byte[] temp = xmp.asByteArray();
-
-		metadata.importXMPMetadata(temp);
+		metadata.importXMPMetadata(editedBytes);
 		return cat;
 	}
 }

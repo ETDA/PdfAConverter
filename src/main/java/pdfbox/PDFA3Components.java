@@ -8,6 +8,8 @@ public class PDFA3Components {
 	private String documentType;
 	private String documentFileName;
 	private String documentVersion;
+	private String xmpTemplatePath;
+	
 	/**
 	 * 	 * Use for set file path (input and output)
 	 * 
@@ -19,7 +21,8 @@ public class PDFA3Components {
 	 * @param documentFileName : name of embed file name
 	 * @param documentVersion : document version
 	 */
-	public PDFA3Components(String inputFilePath, String embedFilePath, String colorProfilePath, String outputFilePath, String documentType, String documentFileName, String documentVersion) {
+	public PDFA3Components(String inputFilePath, String embedFilePath, String colorProfilePath, String outputFilePath,
+			String documentType, String documentFileName, String documentVersion, String xmpTemplatePath) {
 		super();
 		this.inputFilePath = inputFilePath;
 		this.outputFilePath = outputFilePath;
@@ -28,49 +31,70 @@ public class PDFA3Components {
 		this.documentType = documentType;
 		this.documentFileName = documentFileName;
 		this.documentVersion = documentVersion;
+		this.xmpTemplatePath = xmpTemplatePath;
 	}
+
 	public String getInputFilePath() {
 		return inputFilePath;
 	}
+
 	public void setInputFilePath(String inputFilePath) {
 		this.inputFilePath = inputFilePath;
 	}
+
 	public String getEmbedFilePath() {
 		return embedFilePath;
 	}
+
 	public void setEmbedFilePath(String embedFilePath) {
 		this.embedFilePath = embedFilePath;
 	}
+
 	public String getColorProfilePath() {
 		return colorProfilePath;
 	}
+
 	public void setColorProfilePath(String colorProfilePath) {
 		this.colorProfilePath = colorProfilePath;
-	} 
+	}
+
 	public String getOutputFilePath() {
 		return outputFilePath;
 	}
+
 	public void setOutputFilePath(String outputFilePath) {
 		this.outputFilePath = outputFilePath;
 	}
+
 	public String getDocumentType() {
 		return documentType;
 	}
+
 	public void setDocumentType(String documentType) {
 		this.documentType = documentType;
 	}
+
 	public String getDocumentFileName() {
 		return documentFileName;
 	}
+
 	public void setDocumentFileName(String documentFileName) {
 		this.documentFileName = documentFileName;
 	}
+
 	public String getDocumentVersion() {
 		return documentVersion;
 	}
+
 	public void setDocumentVersion(String documentVersion) {
 		this.documentVersion = documentVersion;
 	}
-	
 
+	public String getXmpTemplatePath() {
+		return xmpTemplatePath;
+	}
+
+	public void setXmpTemplatePath(String xmpTemplatePath) {
+		this.xmpTemplatePath = xmpTemplatePath;
+	}
 }
