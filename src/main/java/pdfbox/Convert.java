@@ -1,5 +1,7 @@
 package pdfbox;
 
+import main.PDFA3Components;
+
 /**
  * Convert file input from PDF to PDF/A-3
  * 
@@ -27,7 +29,8 @@ public class Convert {
 		String outputFilePath = "target/success.pdf";
 		String documentType = "Tax Invoice";
 		String docFileName = "ETDA-invoice.xml";
-		String docVersion = "2.0";*/
+		String docVersion = "2.0";
+		String xmpTemplatePath = "src/main/resources/xmpTemplate.xml";*/
 		
 		String inputFilePath = args[0];
 		String embbedFilePath = args[1];
@@ -36,8 +39,9 @@ public class Convert {
 		String documentType = args[4];
 		String docFileName = args[5];
 		String docVersion = args[6];
+		String xmpTemplatePath = args[7];
 		PDFA3Components pdfa3Components = new PDFA3Components(inputFilePath, embbedFilePath, colorProfilePath,
-				outputFilePath, documentType, docFileName, docVersion);
+				outputFilePath, documentType, docFileName, docVersion, xmpTemplatePath);
 
 		ConvertPDFtoA3.Convert(pdfa3Components);
 	}
