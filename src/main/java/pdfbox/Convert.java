@@ -30,7 +30,7 @@ public class Convert {
 		String documentType = "Tax Invoice";
 		String docFileName = "ETDA-invoice.xml";
 		String docVersion = "2.0";
-		String xmpTemplatePath = "D:/Users/itsaya/workspace/PDFA3/xmpTemplate.xml";*/
+		String xmpTemplatePath = "src/main/resources/xmpTemplate.xml";*/
 		
 		String inputFilePath = args[0];
 		String embbedFilePath = args[1];
