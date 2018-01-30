@@ -1,6 +1,5 @@
 package pdfbox;
 
-import main.PDFA3Components;
 
 /**
  * Convert file input from PDF to PDF/A-3
