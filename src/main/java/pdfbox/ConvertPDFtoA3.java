@@ -6,17 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.jempbox.xmp.XMPMetadata;
-import org.apache.jempbox.xmp.XMPSchema;
-import org.apache.jempbox.xmp.XMPSchemaBasic;
-import org.apache.jempbox.xmp.XMPSchemaPDF;
-import org.apache.jempbox.xmp.pdfa.XMPSchemaPDFAId;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -27,9 +22,7 @@ import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDMarkInfo;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
-import org.w3c.dom.Element;
 
 /**
  * The ConvertPDFtoPDFA3 method is used to convert any kind of PDF(.pdf) to
@@ -88,7 +81,8 @@ public class ConvertPDFtoA3 {
 		PDEmbeddedFilesNameTreeNode efTree = new PDEmbeddedFilesNameTreeNode();
 
 		File embedFile = new File(embedFilePath);
-		String subType = FilenameUtils.getExtension(embedFilePath);
+		
+		String subType = Files.probeContentType(FileSystems.getDefault().getPath(embedFilePath));
 		String embedFileName = FilenameUtils.getName(embedFilePath);
 		// first create the file specification, which holds the embedded file
 
