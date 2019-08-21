@@ -3,7 +3,7 @@
     <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" xmlns:xmp="http://ns.adobe.com/xap/1.0/" rdf:about="">
       <dc:format>application/pdf</dc:format>
       <pdfaid:part>3</pdfaid:part>
-      <pdfaid:conformance>U</pdfaid:conformance>
+      <pdfaid:conformance></pdfaid:conformance>
     </rdf:Description>
   <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/" xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#" xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#" rdf:about="">
 		<pdfaExtension:schemas>
